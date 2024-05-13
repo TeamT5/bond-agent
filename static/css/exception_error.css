@@ -1,0 +1,159 @@
+html {
+    font-size: 15px;
+}
+
+body {
+    background-image: url("/static/img/Exception_BackGround.jpeg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: 150px 0;
+    background-color: #F7DDCC;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#slideshow {
+    position: relative;
+    justify-content: center;
+    align-items: center;
+    width: 256px;
+    height: 256px;
+}
+
+.fade-in {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transition: opacity 2.8s;
+}
+
+.fade-in.active {
+    opacity: 1;
+}
+
+.content-center {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+    padding: 10px;
+    transition: transform 1.3s ease;
+}
+
+.content-center:hover {
+    transform: scale(1.1);
+}
+
+.readonly {
+    pointer-events: none;
+    user-select: none;
+}
+
+h1 {
+    user-select: none;
+    color: #fd5c5c;
+    font-family: Helvetica;
+    margin: 0;
+    padding: 0;
+    font-size: 3rem;
+    position: relative;
+    margin-bottom: 10px;
+    transition: transform 2s ease;
+}
+
+h4 {
+    color: #9B1722;
+    font-family: Helvetica;
+    margin: 0;
+    padding: 0;
+    font-size: 1.15rem;
+    position: relative;
+    transition: transform 1.3s ease;
+}
+
+h1::after {
+    content: attr(data-spotlight);
+    color: rgb(255, 0, 0);
+    position: absolute;
+    top: 0;
+    left: 0;
+    -webkit-clip-path: ellipse(100px 100px at 0% 50%);
+    clip-path: ellipse(100px 100px at 0% 50%);
+    user-select: none;
+    animation: spotlight 8s linear infinite;
+    transition: transform 2s ease;
+}
+
+h1:hover {
+    transform: scale(1.2);
+}
+
+h1::after:hover {
+    transform: scale(1.2);
+}
+
+@keyframes spotlight {
+    0% {
+        -webkit-clip-path: ellipse(100px 100px at 0% 50%);
+        clip-path: ellipse(100px 100px at 0% 50%);
+        color: #fc9c65;
+    }
+
+    50% {
+        -webkit-clip-path: ellipse(100px 100px at 100% 50%);
+        clip-path: ellipse(100px 100px at 100% 50%);
+        color: #ff0000;
+    }
+
+    100% {
+        -webkit-clip-path: ellipse(100px 100px at 0% 50%);
+        clip-path: ellipse(100px 100px at 0% 50%);
+        color: #fc9c65;
+    }
+}
+
+.http_code_description_box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: #F7DDCC;
+    padding: auto;
+    margin: auto;
+    transition: transform 1.3s ease;
+    height: 170px;
+    width: 500px;
+    overflow-wrap: break-word;
+}
+
+.http_code_description_box:hover {
+    transform: scale(1.1);
+}
+
+.button-center {
+    font-family: Helvetica;
+    text-align: center;
+    white-space: nowrap;
+    transition: transform 1.3s ease;
+}
+
+.Bond-Button {
+    display: inline-block;
+    margin-top: 30px;
+    width: 60px;
+    padding: 10px 20px;
+    background-color: #3B779B;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.7s ease;
+}
+
+.Bond-Button:hover {
+    border: #2c5975 solid 3px;
+    color: #1c394b;
+    transform: scale(1.15);
+}

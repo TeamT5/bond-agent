@@ -1,0 +1,43 @@
+<html>
+
+<head>
+    <title>Bond-Agent | Index</title>
+    <link rel="icon" href="{{ url_for('static', path='img/Bond-Agent.ico') }}" type="image/x-icon" />
+    <link rel="shortcut icon" href="{{ url_for('static', path='img/Bond-Agent.ico') }}" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/index.css') }}">
+</head>
+
+<body>
+    <div class="content-box">
+        <div class="content-center">
+            <div id="slideshow">
+                <img class="fade-in" width="256" height="256"
+                    data-src="{{ url_for('static', path='img/Bond-Agent.png') }}" alt="Image 1">
+                <img class="fade-in" width="256" height="256"
+                    data-src="{{ url_for('static', path='img/Bond-Agent-XP.png') }}" alt="Image 2">
+                <img class="fade-in" width="256" height="256"
+                    data-src="{{ url_for('static', path='img/Bond-Controller.png') }}" alt="Image 3">
+                <img class="fade-in" width="256" height="256" data-src="{{ url_for('static', path='img/Bond.png') }}"
+                    alt="Image 4">
+            </div>
+        </div>
+        <div>
+            <h1 data-spotlight="Bond-Agent is alive">Bond-Agent is alive</h1>
+        </div>
+        <div class="content-center">
+            <h4 class="readonly"><b>Team-T5™ | Engine Team</b></h4>
+        </div>
+        <div class="content-center">
+            <h5 class="readonly"><b>Version: {{ version }}</b></h5>
+        </div>
+        {% if debug %}
+        <div class="button-center">
+            <a class="bond-Button" href="{{ DOCS_URL }}"><b>DOCS</b></a>
+            <a class="bond-Button" href="{{ REDOC_URL }}"><b>REDOC</b></a>
+        </div>
+        {% endif %}
+    </div>
+    <script type="text/javascript" src="{{ url_for('static', path='js/index.js') }}"></script>
+</body>
+
+</html>
