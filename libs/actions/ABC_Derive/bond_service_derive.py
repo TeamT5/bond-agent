@@ -46,19 +46,19 @@ class Bond_Service_Derive(Bond_Service_ABC):
         )
 
     @Bond_Service_ABC.router.post("/upload_file", name="Upload_File")
-    def upload_file(file_model: GetFileModel) -> JSONResponse:
+    def upload_file(upload: GetFileModel) -> JSONResponse:
         try:
-            file_target_path = file_model.target.replace("\\", "/")
-            file_content = file_model.file_content
+            target = upload.target.replace("\\", "/")
+            file_content = upload.file_content
             file_data = base64.b64decode(file_content.encode("utf-8"))
 
             resp_dict = {
                 "status": True,
-                "file_path": file_target_path,
-                "file_name": file_target_path.split("/")[-1],
+                "file_path": target,
+                "file_name": target.split("/")[-1],
                 "info": {},
             }
-            with open(file_target_path, "wb") as out_file:
+            with open(target, "wb") as out_file:
                 out_file.write(file_data)
             resp_dict["info"]["message"] = "File Uploaded Successfully"
 
