@@ -20,7 +20,10 @@ def parse_executor(executee: str) -> str:
     # If the file extension is not found, return the default executor
     # Default executor is itself
     executor = executor_table.get(executee.split(".")[-1], executee)
-    if executor == executee:
+
+    if executor == "python":
+        return "python"
+    elif executor == executee:
         return executor
 
     # Windows system uses '\' as the directory delimiter
