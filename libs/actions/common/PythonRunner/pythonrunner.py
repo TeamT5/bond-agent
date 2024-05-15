@@ -190,9 +190,9 @@ class PythonRunner:
         :return: [str] The path to the main script file.
         """
         if os.path.isdir(path):
-            main_script_path = cls._get_processed_file_path(venv_pip, path)
-        elif os.path.isfile(path):
             main_script_path = cls._get_processed_project_path(venv_pip, path)
+        elif os.path.isfile(path):
+            main_script_path = cls._get_processed_file_path(venv_pip, path)
         else:
             logger.error("The provided path is neither a file nor a directory.")
             return None
