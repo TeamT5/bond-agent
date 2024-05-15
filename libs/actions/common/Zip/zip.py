@@ -33,3 +33,15 @@ class ZIP:
         with zipfile.ZipFile(archive_name, "w", zipfile.ZIP_DEFLATED) as zipf:
             cls._zipdir(folder_path, zipf)
         return archive_name
+
+    @staticmethod
+    def unzip_file(zip_path: str, extract_to: str) -> None:
+        """
+        Unzip the file.
+
+        :param zip_path: [str] zip path
+        :param extract_to: [str] extract to path
+        """
+        os.makedirs(extract_to, exist_ok=True)
+        with zipfile.ZipFile(zip_path, "r") as zipf:
+            zipf.extractall(extract_to)
