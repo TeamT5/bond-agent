@@ -1,4 +1,39 @@
 import subprocess
+from libs.actions.common.PythonRunner.pythonrunner import PythonRunner
+
+
+@PythonRunner.execute_with_venv
+def execute_python_command(
+    to_be_executed: str,
+    timeout: int,
+    extra_args: tuple = (),
+    venv_python: str = None,
+    venv_pip: str = None,
+) -> tuple:
+    """
+    Execute the python command.
+
+    :param to_be_executed: [str] to be executed
+    :param timeout: [int] timeout
+    :param extra_args: [tuple] extra arguments
+    :param venv_python: [str] path to the python executable in the virtual environment
+    :return: [tuple] out, err, returncode
+    """
+
+    out, err, returncode = "", "", 1
+
+    to_be_executed = PythonRunner.check_python_file_or_folder(to_be_executed, venv_pip)
+
+    if to_be_executed == None:
+        err = "This is not a valid Python file or folder."
+    else:
+        if extra_args:
+            to_be_executed = f"{to_be_executed} {' '.join(extra_args)}"
+
+        run_command = f"{venv_python} {to_be_executed}"
+        out, err, returncode = run_command_with_timeout(run_command, timeout)
+
+    return out, err, returncode
 
 
 def execute_command(

@@ -1,6 +1,12 @@
 from pydantic import BaseModel
 
 
+class ExecutePythonModel(BaseModel):
+    to_be_executed: str
+    timeout: int = 0
+    extra_args: tuple = ()
+
+
 class ExecuteFileModel(BaseModel):
     to_be_executed: str
     timeout: int = 0
