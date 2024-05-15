@@ -1,5 +1,6 @@
 import os
 import base64
+import tempfile
 import platform
 from fastapi import Request, BackgroundTasks
 from fastapi.encoders import jsonable_encoder
@@ -11,7 +12,8 @@ from libs.actions.common.Zip.zip import ZIP
 from libs.actions.common.File_read.file_reader import FileReader
 
 from libs.models.bond_service_models import (
-    GetFileModel,
+    UploadFileModel,
+    UploadFolderModel,
 )
 
 
@@ -45,8 +47,45 @@ class Bond_Service_Derive(Bond_Service_ABC):
             media_type="application/json",
         )
 
+    @Bond_Service_ABC.router.post("/upload_folder", name="Upload_Folder")
+    def upload_folder(upload: UploadFolderModel) -> JSONResponse:
+        try:
+            target = upload.target.replace("\\", "/")
+            folder_name = target.split("/")[-1]
+            folder_content = upload.folder_content
+            folder_data = base64.b64decode(folder_content.encode("utf-8"))
+
+            with tempfile.TemporaryDirectory() as temp_dir:
+                temp_zip = f"{temp_dir}/{folder_name}.zip"
+
+                with open(temp_zip, "wb") as out_file:
+                    out_file.write(folder_data)
+
+                ZIP.unzip_file(temp_zip, target)
+
+            resp_dict = {
+                "status": True,
+                "folder_path": target,
+                "folder_name": folder_name,
+                "info": {},
+            }
+
+            resp_dict["info"]["message"] = "Folder Uploaded Successfully"
+
+        except BaseException as err:
+            resp_dict["status"] = False
+            resp_dict["info"]["message"] = "BaseException: Folder Uploaded Failed"
+            resp_dict["info"]["error"] = str(err)
+
+        finally:
+            return JSONResponse(
+                content=jsonable_encoder(resp_dict),
+                status_code=200 if resp_dict["status"] else 400,
+                media_type="application/json",
+            )
+
     @Bond_Service_ABC.router.post("/upload_file", name="Upload_File")
-    def upload_file(upload: GetFileModel) -> JSONResponse:
+    def upload_file(upload: UploadFileModel) -> JSONResponse:
         try:
             target = upload.target.replace("\\", "/")
             file_content = upload.file_content

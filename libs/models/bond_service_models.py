@@ -19,6 +19,11 @@ class RubyExecuteFileModel(BaseModel):
     extra_args: tuple = ()
 
 
-class GetFileModel(BaseModel):
+class UploadFileModel(BaseModel):
     target: str
     file_content: str
+
+
+class UploadFolderModel(BaseModel):
+    target: str
+    folder_content: str
