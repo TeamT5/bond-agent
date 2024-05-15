@@ -146,6 +146,22 @@ class PythonRunner:
         Get the path to the main script file and install the required packages.
 
         :param venv_pip: [str] The path to the pip executable in the virtual environment.
+        :param path: [str] The path to the Python file.
+        :return: [str] The path to the main script file.
+        """
+        packages = PythonRunner._get_imported_packages(path)
+        PythonRunner._install_packages(venv_pip, list(packages))
+        if not os.path.exists(path):
+            return None
+
+        return path
+
+    @classmethod
+    def _get_processed_project_path(cls, venv_pip: str, path: str) -> str | None:
+        """
+        Get the path to the main script file and install the required packages.
+
+        :param venv_pip: [str] The path to the pip executable in the virtual environment.
         :param path: [str] The path to the directory containing the main script file.
         :return: [str] The path to the main script file.
         """
@@ -162,23 +178,6 @@ class PythonRunner:
             return None
 
         return main_script_path
-
-    @classmethod
-    def _get_processed_project_path(cls, venv_pip: str, path: str) -> str | None:
-        """
-        Get the path to the main script file and install the required packages.
-
-        :param venv_pip: [str] The path to the pip executable in the virtual environment.
-        :param path: [str] The path to the Python file.
-        :return: [str] The path to the main script file.
-        """
-
-        packages = PythonRunner._get_imported_packages(path)
-        PythonRunner._install_packages(venv_pip, list(packages))
-        if not os.path.exists(path):
-            return None
-
-        return path
 
     @classmethod
     def check_python_file_or_folder(cls, path: str, venv_pip: str) -> str:
