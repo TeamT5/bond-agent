@@ -21,15 +21,12 @@ class Windows_Bond_Service(Bond_Service_Derive):
         :param execute: [ExecuteFileModel] execute file model
         :return: JSONResponse
         """
-        to_be_executed = execute.to_be_executed
+
         resp_data = {}
         resp_status_code = 200
-        extra_args = execute.extra_args
         timeout = execute.timeout
-
-        logger.info(f"execute_python_folder: {to_be_executed}")
-        logger.info(f"extra_args: {extra_args}")
-        logger.info(f"timeout: {timeout}")
+        extra_args = execute.extra_args
+        to_be_executed = execute.to_be_executed
 
         try:
             out, err, returncode = execute_file_utility.execute_python_command(
@@ -71,11 +68,11 @@ class Windows_Bond_Service(Bond_Service_Derive):
         :return: JSONResponse
         """
 
-        to_be_executed = execute.to_be_executed.replace("\\", "/")
         resp_data = {}
         resp_status_code = 200
-        executor = console_executor.parse_executor(to_be_executed)
         extra_args = execute.extra_args
+        to_be_executed = execute.to_be_executed.replace("\\", "/")
+        executor = console_executor.parse_executor(to_be_executed)
 
         try:
             if executor == "python":

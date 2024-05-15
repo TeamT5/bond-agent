@@ -1,25 +1,11 @@
 import os
+import re
 import sys
+import pkgutil
 import tempfile
 import functools
 import subprocess
 from loguru import logger
-
-
-def _temp_dir_decorator(func: callable):
-    """
-    Create a temporary directory and pass it to the decorated function.
-
-    :param func: [callable] The function to be decorated.
-    """
-
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            logger.info(f"Temp Path: {temp_dir}")
-            return func(temp_dir, *args, **kwargs)
-
-    return wrapper
 
 
 class PythonRunner:
@@ -34,8 +20,6 @@ class PythonRunner:
         try:
             update_pip = subprocess.run(
                 [venv_python, "-m", "pip", "install", "--upgrade", "pip"],
-                capture_output=True,
-                text=True,
             )
             if update_pip.returncode == 0:
                 logger.info("Pip successfully updated.")
@@ -50,11 +34,25 @@ class PythonRunner:
             logger.error(e.stderr)
 
     @classmethod
+    def _ensure_virtualenv_installed(cls) -> None:
+        """
+        Check if virtualenv is installed, if not, install it.
+        """
+        try:
+            import virtualenv
+
+            logger.info("virtualenv is already installed.")
+        except ImportError:
+            logger.info("virtualenv is not installed, installing now...")
+            subprocess.run([sys.executable, "-m", "pip", "install", "virtualenv"])
+
+    @classmethod
     def _create_virtualenv(cls, temp_dir: str) -> str:
         """
         Create a virtual environment in the provided directory.
 
         :param temp_dir: [str] The path to the temporary directory.
+        :return: [str] The path to the virtual environment directory.
         """
         venv_dir = os.path.join(temp_dir, ".venv")
         subprocess.check_call([sys.executable, "-m", "virtualenv", venv_dir])
@@ -62,31 +60,43 @@ class PythonRunner:
         return venv_dir
 
     @classmethod
-    def _get_module_names_from_script(cls, script_path: str) -> set:
+    def _parse_import_line(cls, line: str) -> str:
         """
-        Get the names of the modules that are imported in the script.
+        Parse a single import line to extract the base module name, handling aliases and multiple imports.
 
-        :param script_path: [str] The path to the script.
-        :return: [set] The set of module names.
+        :param line: [str] The import line.
+        :return: [str] The base module name.
         """
-        with open(script_path, "r") as file:
-            lines = file.readlines()
-        imports = [
-            line.strip()
-            for line in lines
-            if line.strip().startswith(("import", "from"))
-        ]
-        logger.info(f"Found import lines: {imports}")
-        packages = set()
-        for line in imports:
-            parts = line.split()
+        parts = line.split()
+        if parts[0] == "import":
+            module_name = parts[1].split(",")[0].split(".")[0].split("as")[0]
+        else:  # from import
             module_name = parts[1].split(".")[0]
-            if (
-                module_name not in sys.builtin_module_names
-                and module_name not in sys.stdlib_module_names
-            ):
-                packages.add(module_name)
-        return packages
+        return module_name
+
+    @classmethod
+    def _get_imported_packages(cls, script_path: str) -> set:
+        """
+        Use regex to extract the imported module names from a Python script.
+
+        :param script_path: [str] The path to the Python script.
+        :return: [set] The set of imported module names.
+        """
+        std_libs = {module.name for module in pkgutil.iter_modules()}
+
+        import_pattern = re.compile(r"^\s*(?:from\s+([\w\.]+)|import\s+([\w\.]+))")
+        imported_modules = set()
+
+        with open(script_path, "r", encoding="utf-8") as file:
+            for line in file:
+                match = import_pattern.match(line)
+                if match:
+                    module = match.group(1) or match.group(2)
+                    module_name = module.split(".")[0]
+                    if module_name not in std_libs:
+                        imported_modules.add(module_name)
+
+        return imported_modules
 
     @classmethod
     def _get_venv_paths(cls, venv_dir: str) -> tuple[str, str]:
@@ -114,59 +124,96 @@ class PythonRunner:
         if packages:
             command = [venv_pip, "install"] + packages
             try:
-                subprocess.run(command, check=True)
+                subprocess.run(command)
             except subprocess.CalledProcessError as e:
                 logger.error(f"Error installing packages: {e}")
 
     @classmethod
-    def _check_and_install_virtualenv(cls) -> None:
+    def _get_requirements_packages(cls, requirements_path: str) -> list:
         """
-        Check if virtualenv is installed, if not, install it.
-        """
-        try:
-            import virtualenv
+        Get the list of packages from the requirements file.
 
-            logger.info("virtualenv is already installed.")
-        except ImportError:
-            logger.info("virtualenv is not installed, installing now...")
-            subprocess.check_call(
-                [sys.executable, "-m", "pip", "install", "virtualenv"]
-            )
+        :param requirements_path: [str] The path to the requirements file.
+        :return: [list] The list of package names.
+        """
+        with open(requirements_path, "r") as file:
+            packages = file.read().splitlines()
+        return packages
+
+    @classmethod
+    def _get_processed_file_path(cls, venv_pip: str, path: str) -> str | None:
+        """
+        Get the path to the main script file and install the required packages.
+
+        :param venv_pip: [str] The path to the pip executable in the virtual environment.
+        :param path: [str] The path to the directory containing the main script file.
+        :return: [str] The path to the main script file.
+        """
+
+        requirements_path = os.path.join(path, "requirements.txt")
+        main_script_path = os.path.join(path, "main.py")
+        if not os.path.exists(requirements_path):
+            logger.error(f"No requirements.txt found in the directory {path}")
+            return None
+        packages = cls._get_requirements_packages(requirements_path)
+        PythonRunner._install_packages(venv_pip, packages)
+        if not os.path.exists(main_script_path):
+            logger.error(f"main.py not found in the directory {path}")
+            return None
+
+        return main_script_path
+
+    @classmethod
+    def _get_processed_project_path(cls, venv_pip: str, path: str) -> str | None:
+        """
+        Get the path to the main script file and install the required packages.
+
+        :param venv_pip: [str] The path to the pip executable in the virtual environment.
+        :param path: [str] The path to the Python file.
+        :return: [str] The path to the main script file.
+        """
+
+        packages = PythonRunner._get_imported_packages(path)
+        PythonRunner._install_packages(venv_pip, list(packages))
+        if not os.path.exists(path):
+            return None
+
+        return path
 
     @classmethod
     def check_python_file_or_folder(cls, path: str, venv_pip: str) -> str:
+        """
+        Check if the provided path is a Python file or folder and install the required packages.
+
+        :param path: [str] The path to the Python file or folder.
+        :param venv_pip: [str] The path to the pip executable in the virtual environment.
+        :return: [str] The path to the main script file.
+        """
         if os.path.isdir(path):
-            requirements_path = os.path.join(path, "requirements.txt")
-            main_script_path = os.path.join(path, "main.py")
-            if os.path.exists(requirements_path):
-                with open(requirements_path, "r") as file:
-                    packages = file.read().splitlines()
-                PythonRunner._install_packages(venv_pip, packages)
-                if os.path.exists(main_script_path):
-                    return main_script_path
-                else:
-                    logger.error(f"main.py not found in the directory {path}")
-            else:
-                logger.error(f"No requirements.txt found in the directory {path}")
+            main_script_path = cls._get_processed_file_path(venv_pip, path)
         elif os.path.isfile(path):
-            packages = PythonRunner._get_module_names_from_script(path)
-            PythonRunner._install_packages(venv_pip, list(packages))
-            if os.path.exists(path):
-                return path
+            main_script_path = cls._get_processed_project_path(venv_pip, path)
         else:
             logger.error("The provided path is neither a file nor a directory.")
+            return None
+
+        if main_script_path is None:
+            return None
+
+        return main_script_path
 
     @staticmethod
-    def create_venv_and_do_something(func: callable):
+    def execute_with_venv(func: callable) -> callable:
         """
         Create a temporary directory and pass it to the decorated function.
 
         :param func: [callable] The function to be decorated.
+        :return: [callable] The decorated function.
         """
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            PythonRunner._check_and_install_virtualenv()
+            PythonRunner._ensure_virtualenv_installed()
             with tempfile.TemporaryDirectory() as temp_dir:
                 logger.info(f"Temp Path: {temp_dir}")
                 venv_dir = PythonRunner._create_virtualenv(temp_dir)
