@@ -4,15 +4,27 @@
 This is a project that can reside on an endpoint and wait to execute test application tasks.
 
 ## 注意事項
-* Python 使用至少 3.8.0 以上
+* Python 使用至少 3.11.0 以上
   * 推薦使用 standalone-python
-    * https://github.com/25077667/standalone-python
+    * Windows
+      * x64
+        * https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip
+      * x86
+        * https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-win32.zip
+    * Linux
+      * https://github.com/25077667/standalone-python
 * 此專案在 windows 環境中將強制使用 administrator 權限
 
 ## Important Notes
 * Python 3.8.0 or higher is required.
   * Recommended to use standalone-python
-    * https://github.com/25077667/standalone-python
+    * Windows
+      * x64
+        * https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip
+      * x86
+        * https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-win32.zip
+    * Linux
+      * https://github.com/25077667/standalone-python
 * This project will enforce administrator privileges in a Windows environment.
 
 ## 如何安裝
