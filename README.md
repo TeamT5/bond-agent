@@ -16,7 +16,7 @@ This is a project that can reside on an endpoint and wait to execute test applic
 * 此專案在 windows 環境中將強制使用 administrator 權限
 
 ## Important Notes
-* Python 3.8.0 or higher is required.
+* Python 3.11.0 or higher is required.
   * Recommended to use standalone-python
     * Windows
       * x64
