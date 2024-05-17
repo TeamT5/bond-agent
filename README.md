@@ -5,10 +5,14 @@ This is a project that can reside on an endpoint and wait to execute test applic
 
 ## 注意事項
 * Python 使用至少 3.8.0 以上
+  * 推薦使用 standalone-python
+    * https://github.com/25077667/standalone-python
 * 此專案在 windows 環境中將強制使用 administrator 權限
 
 ## Important Notes
 * Python 3.8.0 or higher is required.
+  * Recommended to use standalone-python
+    * https://github.com/25077667/standalone-python
 * This project will enforce administrator privileges in a Windows environment.
 
 ## 如何安裝
