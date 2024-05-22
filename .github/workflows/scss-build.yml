@@ -63,19 +63,19 @@ jobs:
 
       - name: Package project files as zip
         run: |
-          zip -r ${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.zip ./*
+          mkdir -p artifacts
+          zip -r artifacts/${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.zip ./*
 
       - name: Package project files as tar.gz
         run: |
-          tar -czvf ${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.tar.gz ./*
+          mkdir -p artifacts
+          tar -czvf artifacts/${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.tar.gz ./*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: release-package
-          path: |
-            ${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.zip
-            ${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.tar.gz
+          path: artifacts/
 
   release:
     needs: build
@@ -84,14 +84,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create release directory
-        run: mkdir -p release
-
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
           name: release-package
-          path: release/
+          path: ./release
 
       - name: Get version from __version__.py
         id: get_version
@@ -117,7 +114,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.zip
+          asset_path: release/artifacts/${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.zip
           asset_name: ${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.zip
           asset_content_type: application/zip
 
@@ -127,6 +124,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.tar.gz
+          asset_path: release/artifacts/${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.tar.gz
           asset_name: ${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.tar.gz
           asset_content_type: application/gzip
