@@ -56,21 +56,25 @@ jobs:
           sass static/scss/index.scss static/css/index.css
           sass static/scss/exception_error.scss static/css/exception_error.css
 
+      - name: Get current date and time
+        id: get_datetime
+        run: echo "DATETIME=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+
       - name: Package project files as zip
         run: |
-          zip -r ${{ env.PROJECT_NAME }}.zip ./*
+          zip -r ${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.zip ./*
 
       - name: Package project files as tar.gz
         run: |
-          tar -czvf ${{ env.PROJECT_NAME }}.tar.gz ./*
+          tar -czvf ${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.tar.gz ./*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: release-package
           path: |
-            ${{ env.PROJECT_NAME }}.zip
-            ${{ env.PROJECT_NAME }}.tar.gz
+            ${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.zip
+            ${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.tar.gz
 
   release:
     needs: build
@@ -88,8 +92,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.sha }}
-          release_name: Release ${{ github.sha }}
+          tag_name: ${{ env.DATETIME }}
+          release_name: Release ${{ env.DATETIME }}
           draft: false
           prerelease: false
 
@@ -99,8 +103,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./release/${{ env.PROJECT_NAME }}.zip
-          asset_name: ${{ env.PROJECT_NAME }}.zip
+          asset_path: ./release/${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.zip
+          asset_name: ${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.zip
           asset_content_type: application/zip
 
       - name: Upload Release Asset - TAR.GZ
@@ -109,6 +113,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./release/${{ env.PROJECT_NAME }}.tar.gz
-          asset_name: ${{ env.PROJECT_NAME }}.tar.gz
+          asset_path: ./release/${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.tar.gz
+          asset_name: ${{ env.PROJECT_NAME }}_${{ env.DATETIME }}.tar.gz
           asset_content_type: application/gzip
