@@ -2,9 +2,13 @@ name: Python application
 
 on:
   push:
-    branches: ["use_scss"]
+    branches:
+      - "use_scss"
+      - "main"
   pull_request:
-    branches: ["use_scss"]
+    branches:
+      - "use_scss"
+      - "main"
 
 permissions:
   contents: write
