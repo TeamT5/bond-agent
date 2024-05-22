@@ -56,27 +56,21 @@ jobs:
           sass static/scss/index.scss static/css/index.css
           sass static/scss/exception_error.scss static/css/exception_error.css
 
-      - name: Get version from __version__.py
-        id: get_version
-        run: |
-          VERSION=$(grep '__version__' libs/config/__version__.py | sed -E 's/__version__ = "(.*)"/\1/')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
       - name: Package project files as zip
         run: |
-          zip -r ${{ env.PROJECT_NAME }}_${{ env.VERSION }}.zip ./*
+          zip -r ${{ env.PROJECT_NAME }}.zip ./*
 
       - name: Package project files as tar.gz
         run: |
-          tar -czvf ${{ env.PROJECT_NAME }}_${{ env.VERSION }}.tar.gz ./*
+          tar -czvf ${{ env.PROJECT_NAME }}.tar.gz ./*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: release-package
           path: |
-            ${{ env.PROJECT_NAME }}_${{ env.VERSION }}.zip
-            ${{ env.PROJECT_NAME }}_${{ env.VERSION }}.tar.gz
+            ${{ env.PROJECT_NAME }}.zip
+            ${{ env.PROJECT_NAME }}.tar.gz
 
   release:
     needs: build
@@ -94,8 +88,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.VERSION }}
-          release_name: Release ${{ env.VERSION }}
+          tag_name: ${{ github.sha }}
+          release_name: Release ${{ github.sha }}
           draft: false
           prerelease: false
 
@@ -105,8 +99,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./release/${{ env.PROJECT_NAME }}_${{ env.VERSION }}.zip
-          asset_name: ${{ env.PROJECT_NAME }}_${{ env.VERSION }}.zip
+          asset_path: ./release/${{ env.PROJECT_NAME }}.zip
+          asset_name: ${{ env.PROJECT_NAME }}.zip
           asset_content_type: application/zip
 
       - name: Upload Release Asset - TAR.GZ
@@ -115,6 +109,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./release/${{ env.PROJECT_NAME }}_${{ env.VERSION }}.tar.gz
-          asset_name: ${{ env.PROJECT_NAME }}_${{ env.VERSION }}.tar.gz
+          asset_path: ./release/${{ env.PROJECT_NAME }}.tar.gz
+          asset_name: ${{ env.PROJECT_NAME }}.tar.gz
           asset_content_type: application/gzip
