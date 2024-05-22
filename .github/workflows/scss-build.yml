@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - use_scss
     paths:
       - "static/scss/**"
       - "src/**"
