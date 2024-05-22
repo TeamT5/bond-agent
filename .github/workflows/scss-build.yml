@@ -3,7 +3,6 @@ name: Build and Release
 on:
   push:
     branches:
-      - main
       - use_scss
     paths:
       - "static/scss/**"
