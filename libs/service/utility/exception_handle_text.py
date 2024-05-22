@@ -27,16 +27,12 @@ def create_exception_handler(
         :return: [Jinja2Templates] The template response.
         """
 
-        http_code_description = (
-            handle_code_message["message"].replace("\n", "").replace(" ", "")
-        )
-
         context = {
             "request": request,
             "version": config.VERSION,
             "http_code": handle_type_code,
             "http_code_content": handle_code_message["code_name"],
-            "http_code_description": http_code_description,
+            "http_code_description": handle_code_message["message"],
         }
 
         return config.TEMPLATES.TemplateResponse("exception_error.html", context)
