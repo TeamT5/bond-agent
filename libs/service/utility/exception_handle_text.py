@@ -1,34 +1,44 @@
+from typing import Callable, Dict
+from fastapi import Request, HTTPException
+from fastapi.templating import Jinja2Templates
+
 from libs.config import config
 
 
-def exception_handler(handle_type_code: int, handle_code_message: str) -> str:
+def create_exception_handler(
+    handle_type_code: int, handle_code_message: Dict[str, str]
+) -> Callable:
     """
-    if the http status code is not 200, then return the html string
+    Create a custom exception handler for FastAPI.
 
-    :param handle_type_code: [int] http status code
-    :param handle_code_message: [str] http status code message
-    :return: [str] html string
+    :param handle_type_code: [int] The HTTP status code to handle.
+    :param handle_code_message: [Dict[str, str]] The message to display.
+    :return: [Callable] The exception handler.
     """
 
-    http_code_description = (
-        handle_code_message["message"].replace("\n", "").replace(" ", "")
-    )
+    async def exception_handler(
+        request: Request, exc: HTTPException
+    ) -> Jinja2Templates:
+        """
+        Exception handler for FastAPI.
 
-    result = (
-        f"""
-@self.exception_handler({handle_type_code})
-def exception_{handle_type_code}_handler(request: Request, exc: HTTPException):
-    return config.TEMPLATES.TemplateResponse(
-        'exception_error.html', """
-        + "{"
-        + f"""
-        'request': request,
-        'version': '{config.VERSION}',
-        "http_code": '{handle_type_code}',
-        "http_code_content": '{handle_code_message["code_name"]}',
-        "http_code_description": '{http_code_description}'
-    """
-        + "})"
-    )
+        :param request: [Request] The request object.
+        :param exc: [HTTPException] The exception object.
+        :return: [Jinja2Templates] The template response.
+        """
 
-    return result
+        http_code_description = (
+            handle_code_message["message"].replace("\n", "").replace(" ", "")
+        )
+
+        context = {
+            "request": request,
+            "version": config.VERSION,
+            "http_code": handle_type_code,
+            "http_code_content": handle_code_message["code_name"],
+            "http_code_description": http_code_description,
+        }
+
+        return config.TEMPLATES.TemplateResponse("exception_error.html", context)
+
+    return exception_handler

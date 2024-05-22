@@ -101,10 +101,16 @@ class Service(FastAPI):
             http_exception_code,
             http_exception_message,
         ) in http_code.HTTP_STATUS_CODE_DICT.items():
-            handle_resouse_text = exception_handle_text.exception_handler(
-                http_exception_code, http_exception_message
+            self.add_exception_handler(
+                http_exception_code,
+                exception_handle_text.create_exception_handler(
+                    http_exception_code, http_exception_message
+                ),
             )
-            exec(handle_resouse_text)
+            # handle_resouse_text = exception_handle_text.exception_handler(
+            #     http_exception_code, http_exception_message
+            # )
+            # exec(handle_resouse_text)
 
     def uvicorn_runner(self, host: str = "localhost", port: int = 8086):
         self.bond_run()

@@ -3,14 +3,16 @@ html {
 }
 
 body {
-    background-image: url("/static/img/Exception_BackGround.jpeg");
+    background-image: url("/static/img/BackGround.jpg");
     background-repeat: no-repeat;
     background-size: cover;
-    background-position: 150px 0;
-    background-color: #F7DDCC;
+    background-position: center;
+    background-attachment: fixed;
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden;
+    position: relative;
 }
 
 #slideshow {
@@ -40,6 +42,7 @@ body {
     white-space: nowrap;
     padding: 10px;
     transition: transform 1.3s ease;
+    background-color: transparent;
 }
 
 .content-center:hover {
@@ -61,6 +64,7 @@ h1 {
     position: relative;
     margin-bottom: 10px;
     transition: transform 2s ease;
+    background-color: transparent;
 }
 
 h4 {
@@ -71,6 +75,7 @@ h4 {
     font-size: 1.15rem;
     position: relative;
     transition: transform 1.3s ease;
+    background-color: transparent;
 }
 
 h1::after {
@@ -119,7 +124,6 @@ h1::after:hover {
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    background-color: #F7DDCC;
     padding: auto;
     margin: auto;
     transition: transform 1.3s ease;
@@ -141,10 +145,10 @@ h1::after:hover {
 
 .Bond-Button {
     display: inline-block;
-    margin-top: 30px;
+    margin: 10px;
     width: 60px;
     padding: 10px 20px;
-    background-color: #3B779B;
+    background-color: #FEB0B2;
     color: white;
     text-decoration: none;
     border-radius: 4px;
@@ -153,7 +157,7 @@ h1::after:hover {
 }
 
 .Bond-Button:hover {
-    border: #2c5975 solid 3px;
-    color: #1c394b;
+    border: #ff8d91 solid 3px;
+    color: #ff7479;
     transform: scale(1.15);
 }
