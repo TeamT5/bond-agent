@@ -1,5 +1,6 @@
 import os
 import logging
+from fastapi import FastAPI
 from uvicorn import run as uvicorn_run
 from fastapi.staticfiles import StaticFiles
 from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
@@ -7,14 +8,6 @@ from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
 from libs.config import config
 from libs.config import http_code
 from libs.service.utility import exception_handle_text
-
-# *----- handler exec 依賴套件，勿刪 -----*
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import HTTPException
-from fastapi.encoders import jsonable_encoder
-
-# *----- handler exec 依賴套件，勿刪 -----*
 
 
 class Service(FastAPI):
@@ -101,10 +94,12 @@ class Service(FastAPI):
             http_exception_code,
             http_exception_message,
         ) in http_code.HTTP_STATUS_CODE_DICT.items():
-            handle_resouse_text = exception_handle_text.exception_handler(
-                http_exception_code, http_exception_message
+            self.add_exception_handler(
+                http_exception_code,
+                exception_handle_text.create_exception_handler(
+                    http_exception_code, http_exception_message
+                ),
             )
-            exec(handle_resouse_text)
 
     def uvicorn_runner(self, host: str = "localhost", port: int = 8086):
         self.bond_run()
