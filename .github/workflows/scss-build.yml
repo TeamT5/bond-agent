@@ -1,0 +1,42 @@
+name: Compile SCSS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "static/scss/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "static/scss/**"
+
+jobs:
+  build-css:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+
+      - name: Install Sass
+        run: npm install -g sass
+
+      - name: Compile SCSS to CSS
+        run: |
+          sass static/scss/index.scss static/css/index.css
+          sass static/scss/exception_error.scss static/css/exception_error.css
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add static/css/index.css static/css/exception_error.css
+          git commit -m "Compile SCSS to CSS [skip ci]" || echo "No changes to commit"
+          git push
