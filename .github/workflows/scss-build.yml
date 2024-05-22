@@ -1,4 +1,4 @@
-name: Compile SCSS
+name: Build and Release
 
 on:
   push:
@@ -6,14 +6,13 @@ on:
       - main
     paths:
       - "static/scss/**"
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "static/scss/**"
+      - "src/**"
+      - "libs/config/__version__.py"
+      - "package.json"
+      - "package-lock.json"
 
 jobs:
-  build-css:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,18 +24,81 @@ jobs:
         with:
           node-version: "16"
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Install Sass
         run: npm install -g sass
 
       - name: Compile SCSS to CSS
         run: |
+          mkdir -p static/css
           sass static/scss/index.scss static/css/index.css
           sass static/scss/exception_error.scss static/css/exception_error.css
 
-      - name: Commit and push changes
+      - name: Get project name
+        id: project_name
+        run: echo "PROJECT_NAME=$(basename $GITHUB_REPOSITORY)" >> $GITHUB_ENV
+
+      - name: Get version from __version__.py
+        id: version
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add static/css/index.css static/css/exception_error.css
-          git commit -m "Compile SCSS to CSS [skip ci]" || echo "No changes to commit"
-          git push
+          VERSION=$(grep '__version__' libs/config/__version__.py | sed -E 's/__version__ = "(.*)"/\1/')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Package project files as zip
+        run: |
+          zip -r ${{ env.PROJECT_NAME }}_${{ env.VERSION }}.zip ./*
+
+      - name: Package project files as tar.gz
+        run: |
+          tar -czvf ${{ env.PROJECT_NAME }}_${{ env.VERSION }}.tar.gz ./*
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-package
+          path: |
+            ${{ env.PROJECT_NAME }}_${{ env.VERSION }}.zip
+            ${{ env.PROJECT_NAME }}_${{ env.VERSION }}.tar.gz
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: release-package
+          path: ./release
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: Release ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset - ZIP
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release/${{ env.PROJECT_NAME }}_${{ env.VERSION }}.zip
+          asset_name: ${{ env.PROJECT_NAME }}_${{ env.VERSION }}.zip
+          asset_content_type: application/zip
+
+      - name: Upload Release Asset - TAR.GZ
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release/${{ env.PROJECT_NAME }}_${{ env.VERSION }}.tar.gz
+          asset_name: ${{ env.PROJECT_NAME }}_${{ env.VERSION }}.tar.gz
+          asset_content_type: application/gzip
