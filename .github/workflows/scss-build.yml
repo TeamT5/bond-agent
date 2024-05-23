@@ -129,15 +129,6 @@ jobs:
           name: release-package
           path: release/
 
-      - name: Get version and timestamp from environment
-        id: get_version_and_timestamp
-        run: |
-          echo "VERSION=${{ env.VERSION }}" >> $GITHUB_ENV
-          echo "NAME=${{ env.NAME }}" >> $GITHUB_ENV
-          echo "TIMESTAMP=${{ env.TIMESTAMP }}" >> $GITHUB_ENV
-          echo "TAG_NAME=${{ env.TAG_NAME }}" >> $GITHUB_ENV
-          echo "PACKAGE_NAME=${{ env.PACKAGE_NAME }}" >> $GITHUB_ENV
-
       - name: Configure Git
         run: |
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
