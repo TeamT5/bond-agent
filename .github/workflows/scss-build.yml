@@ -16,7 +16,7 @@ permissions:
   contents: write
 
 jobs:
-  test:
+  build_and_release:
     runs-on: ubuntu-latest
 
     steps:
@@ -51,27 +51,6 @@ jobs:
         run: |
           pytest
 
-  build:
-    runs-on: ubuntu-latest
-    needs: test
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.10"
-
-      - name: Restore Python packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
       - name: Install Node.js
         uses: actions/setup-node@v2
         with:
@@ -86,9 +65,10 @@ jobs:
           NAME=$(grep '^name' pyproject.toml | sed -E 's/name = "(.*)"/\1/' | tr -d '[:space:]')
           VERSION=$(grep '__version__' libs/config/__version__.py | sed -E 's/__version__ = "(.*)"/\1/' | tr -d '[:space:]')
           TIMESTAMP=$(date +'%Y%m%d%H%M%S')
-          echo "NAME=$NAME" >> $GITHUB_ENV
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
+          echo "{\"name\":\"${NAME}\",\"version\":\"${VERSION}\",\"timestamp\":\"${TIMESTAMP}\"}" > release_info.json
+          echo "NAME=${NAME}" >> $GITHUB_ENV
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
           echo "TAG_NAME=${NAME}-${VERSION}-${TIMESTAMP}" >> $GITHUB_ENV
           echo "PACKAGE_NAME=${NAME}_${VERSION}_${TIMESTAMP}" >> $GITHUB_ENV
 
@@ -116,19 +96,6 @@ jobs:
           name: release-package
           path: artifacts/
 
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: release-package
-          path: release/
-
       - name: Configure Git
         run: |
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
@@ -136,10 +103,9 @@ jobs:
 
       - name: Create release tag
         run: |
-          git tag ${{ env.TAG_NAME }}
-          git push origin ${{ env.TAG_NAME }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME=$(jq -r '.name + "-" + .version + "-" + .timestamp' release_info.json)
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
 
       - name: Generate release notes
         id: generate_release_notes
@@ -147,8 +113,6 @@ jobs:
           echo "## Changes in this release" > release_notes.md
           echo "" >> release_notes.md
           git log --oneline $(git describe --tags --abbrev=0 HEAD^)..HEAD >> release_notes.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Release
         id: create_release
@@ -168,7 +132,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/artifacts/${{ env.PACKAGE_NAME }}.zip
+          asset_path: artifacts/${{ env.PACKAGE_NAME }}.zip
           asset_name: ${{ env.PACKAGE_NAME }}.zip
           asset_content_type: application/zip
 
@@ -178,6 +142,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/artifacts/${{ env.PACKAGE_NAME }}.tar.gz
+          asset_path: artifacts/${{ env.PACKAGE_NAME }}.tar.gz
           asset_name: ${{ env.PACKAGE_NAME }}.tar.gz
           asset_content_type: application/gzip
