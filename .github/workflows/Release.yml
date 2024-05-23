@@ -131,8 +131,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.TAG_NAME }}
-          release_name: Release ${{ env.TAG_NAME }}
+          tag_name: ${{ steps.create_release.outputs.TAG_NAME }}
+          release_name: Release ${{ steps.create_release.outputs.TAG_NAME }}
           body_path: ./release_notes.md
           draft: false
           prerelease: false
