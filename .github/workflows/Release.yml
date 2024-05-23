@@ -63,7 +63,7 @@ jobs:
         id: get_project_info
         run: |
           NAME=$(grep '^name' pyproject.toml | sed -E 's/name = "(.*)"/\1/' | tr -d '[:space:]')
-          VERSION=$(grep '__version__' libs/config/__version__.py | sed -E 's/__version__ = "(.*)"/\1/' | tr -d '[:space:]')
+          VERSION=$(grep '__version__' __version__.py | sed -E 's/__version__ = "(.*)"/\1/' | tr -d '[:space:]')
           TIMESTAMP=$(TZ=Asia/Taipei date +'%Y%m%d%H%M%S')
           echo "{\"name\":\"${NAME}\",\"version\":\"${VERSION}\",\"timestamp\":\"${TIMESTAMP}\"}" > release_info.json
           echo "NAME=${NAME}" >> $GITHUB_ENV
@@ -114,6 +114,7 @@ jobs:
       - name: Create release tag
         run: |
           TAG_NAME=$(jq -r '.name + "-" + .version + "-" + .timestamp' release_info.json)
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
           git tag $TAG_NAME
           git push origin $TAG_NAME
 
@@ -130,8 +131,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: $TAG_NAME
-          release_name: Release $TAG_NAME
+          tag_name: ${{ env.TAG_NAME }}
+          release_name: Release ${{ env.TAG_NAME }}
           body_path: ./release_notes.md
           draft: false
           prerelease: false
