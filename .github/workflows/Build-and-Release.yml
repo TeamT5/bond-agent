@@ -62,9 +62,10 @@ jobs:
       - name: Get project name, version and timestamp
         id: get_project_info
         run: |
+          sudo apt-get install -y jq
           NAME=$(grep '^name' pyproject.toml | sed -E 's/name = "(.*)"/\1/' | tr -d '[:space:]')
           VERSION=$(grep '__version__' libs/config/__version__.py | sed -E 's/__version__ = "(.*)"/\1/' | tr -d '[:space:]')
-          TIMESTAMP=$(date +'%Y%m%d%H%M%S')
+          TIMESTAMP=$(TZ=Asia/Taipei date +'%Y%m%d%H%M%S')
           echo "{\"name\":\"${NAME}\",\"version\":\"${VERSION}\",\"timestamp\":\"${TIMESTAMP}\"}" > release_info.json
           echo "NAME=${NAME}" >> $GITHUB_ENV
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
@@ -82,13 +83,37 @@ jobs:
         run: |
           mkdir -p artifacts
           find . -type f -iname "*.sh" -exec chmod +x {} \;
-          zip -r artifacts/${{ env.PACKAGE_NAME }}.zip . -x "node_modules/*" -x "artifacts/*" -x ".git/*" -x ".github/*" -x "tests/*" -x ".gitignore"
+          zip -r artifacts/${{ env.PACKAGE_NAME }}.zip . -x \
+              "node_modules/*" \
+              "artifacts/*" \
+              ".git/*" \
+              ".github/*" \
+              "tests/*" \
+              ".gitignore" \
+              "release_info.json" \
+              "file.txt" \
+              "Downloads/*" \
+              "logs/*" \
+              ".pytest_cache/*" \
+              "__pycache__/*"
 
       - name: Set permissions and package project files as tar.gz
         run: |
           mkdir -p artifacts
           find . -type f -iname "*.sh" -exec chmod +x {} \;
-          tar --exclude='./node_modules' --exclude='./artifacts' --exclude='./.git' --exclude='./.github' --exclude='./tests' --exclude='./.gitignore' -czvf artifacts/${{ env.PACKAGE_NAME }}.tar.gz .
+          tar --exclude='./node_modules' \
+              --exclude='./artifacts' \
+              --exclude='./.git' \
+              --exclude='./.github' \
+              --exclude='./tests' \
+              --exclude='./.gitignore' \
+              --exclude='./release_info.json' \
+              --exclude='./file.txt' \
+              --exclude='./Downloads' \
+              --exclude='./logs' \
+              --exclude='./.pytest_cache' \
+              --exclude='*__pycache__*' \
+              -czvf artifacts/${{ env.PACKAGE_NAME }}.tar.gz .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
