@@ -78,8 +78,8 @@ jobs:
       - name: Get project name and version
         id: get_project_info
         run: |
-          NAME=$(grep '^name' pyproject.toml | sed -E 's/name = "(.*)"/\1/')
-          VERSION=$(grep '__version__' libs/config/__version__.py | sed -E 's/__version__ = "(.*)"/\1/')
+          NAME=$(grep '^name' pyproject.toml | sed -E 's/name = "(.*)"/\1/' | tr -d '[:space:]')
+          VERSION=$(grep '__version__' libs/config/__version__.py | sed -E 's/__version__ = "(.*)"/\1/' | tr -d '[:space:]')
           TIMESTAMP=$(date +'%Y%m%d%H%M%S')
           echo "NAME=$NAME" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
