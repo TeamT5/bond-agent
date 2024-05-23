@@ -3,14 +3,10 @@ name: Build and Release
 on:
   push:
     branches:
-      - "use_scss"
       - "main"
-      - "release"
   pull_request:
     branches:
-      - "use_scss"
       - "main"
-      - "release"
 
 permissions:
   contents: write
