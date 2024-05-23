@@ -69,13 +69,7 @@ jobs:
       - name: Install Node.js dependencies
         run: npm install -g sass
 
-      - name: Compile SCSS to CSS
-        run: |
-          mkdir -p static/css
-          sass static/scss/index.scss static/css/index.css
-          sass static/scss/exception_error.scss static/css/exception_error.css
-
-      - name: Get project name and version
+      - name: Get project name, version and timestamp
         id: get_project_info
         run: |
           NAME=$(grep '^name' pyproject.toml | sed -E 's/name = "(.*)"/\1/' | tr -d '[:space:]')
@@ -85,18 +79,25 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
           echo "TAG_NAME=${NAME}-${VERSION}-${TIMESTAMP}" >> $GITHUB_ENV
+          echo "PACKAGE_NAME=${NAME}_${VERSION}_${TIMESTAMP}" >> $GITHUB_ENV
+
+      - name: Compile SCSS to CSS
+        run: |
+          mkdir -p static/css
+          sass static/scss/index.scss static/css/index.css
+          sass static/scss/exception_error.scss static/css/exception_error.css
 
       - name: Set permissions and package project files as zip
         run: |
           mkdir -p artifacts
           find . -type f -iname "*.sh" -exec chmod +x {} \;
-          zip -r artifacts/${{ env.NAME }}_${{ env.VERSION }}_${{ env.TIMESTAMP }}.zip . -x "./node_modules/**" -x "./artifacts/**" -x "./.git/**" -x "./.github/**" -x "./tests/**" -x "./.gitignore"
+          zip -r artifacts/${{ env.PACKAGE_NAME }}.zip . -x "./node_modules/**" -x "./artifacts/**" -x "./.git/**" -x "./.github/**" -x "./tests/**" -x "./.gitignore"
 
       - name: Set permissions and package project files as tar.gz
         run: |
           mkdir -p artifacts
           find . -type f -iname "*.sh" -exec chmod +x {} \;
-          tar --exclude='./node_modules' --exclude='./artifacts' --exclude='./.git' --exclude='./.github' --exclude='./tests' --exclude='./.gitignore' -czvf artifacts/${{ env.NAME }}_${{ env.VERSION }}_${{ env.TIMESTAMP }}.tar.gz .
+          tar --exclude='./node_modules' --exclude='./artifacts' --exclude='./.git' --exclude='./.github' --exclude='./tests' --exclude='./.gitignore' -czvf artifacts/${{ env.PACKAGE_NAME }}.tar.gz .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
@@ -123,7 +124,8 @@ jobs:
           echo "VERSION=${{ env.VERSION }}" >> $GITHUB_ENV
           echo "NAME=${{ env.NAME }}" >> $GITHUB_ENV
           echo "TIMESTAMP=${{ env.TIMESTAMP }}" >> $GITHUB_ENV
-          echo "TAG_NAME=${{ env.NAME }}-${{ env.VERSION }}-${{ env.TIMESTAMP }}" >> $GITHUB_ENV
+          echo "TAG_NAME=${{ env.TAG_NAME }}" >> $GITHUB_ENV
+          echo "PACKAGE_NAME=${{ env.PACKAGE_NAME }}" >> $GITHUB_ENV
 
       - name: Configure Git
         run: |
@@ -164,8 +166,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/artifacts/${{ env.NAME }}_${{ env.VERSION }}_${{ env.TIMESTAMP }}.zip
-          asset_name: ${{ env.NAME }}_${{ env.VERSION }}_${{ env.TIMESTAMP }}.zip
+          asset_path: release/artifacts/${{ env.PACKAGE_NAME }}.zip
+          asset_name: ${{ env.PACKAGE_NAME }}.zip
           asset_content_type: application/zip
 
       - name: Upload Release Asset - TAR.GZ
@@ -174,6 +176,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/artifacts/${{ env.NAME }}_${{ env.VERSION }}_${{ env.TIMESTAMP }}.tar.gz
-          asset_name: ${{ env.NAME }}_${{ env.VERSION }}_${{ env.TIMESTAMP }}.tar.gz
+          asset_path: release/artifacts/${{ env.PACKAGE_NAME }}.tar.gz
+          asset_name: ${{ env.PACKAGE_NAME }}.tar.gz
           asset_content_type: application/gzip
