@@ -88,13 +88,13 @@ jobs:
         run: |
           mkdir -p artifacts
           find . -type f -iname "*.sh" -exec chmod +x {} \;
-          zip -r artifacts/${{ env.NAME }}_${{ env.VERSION }}.zip . -x "./node_modules/**" -x "./artifacts/**" -x "./.git/**" -x "./.github/**"
+          zip -r artifacts/${{ env.NAME }}_${{ env.VERSION }}.zip . -x "./node_modules/**" -x "./artifacts/**" -x "./.git/**" -x "./.github/**" -x "./tests/**" -x "./.gitignore"
 
       - name: Set permissions and package project files as tar.gz
         run: |
           mkdir -p artifacts
           find . -type f -iname "*.sh" -exec chmod +x {} \;
-          tar --exclude='./node_modules' --exclude='./artifacts' --exclude='./.git' --exclude='./.github' -czvf artifacts/${{ env.NAME }}_${{ env.VERSION }}.tar.gz .
+          tar --exclude='./node_modules' --exclude='./artifacts' --exclude='./.git' --exclude='./.github' --exclude='./tests' --exclude='./.gitignore' -czvf artifacts/${{ env.NAME }}_${{ env.VERSION }}.tar.gz .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
@@ -136,6 +136,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Generate release notes
+        id: generate_release_notes
+        run: |
+          echo "## Changes in this release" > release_notes.md
+          echo "" >> release_notes.md
+          git log --oneline $(git describe --tags --abbrev=0 HEAD^)..HEAD >> release_notes.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -144,6 +153,7 @@ jobs:
         with:
           tag_name: ${{ env.TAG_NAME }}
           release_name: Release ${{ env.TAG_NAME }}
+          body_path: ./release_notes.md
           draft: false
           prerelease: false
 
@@ -153,7 +163,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/${{ env.NAME }}_${{ env.VERSION }}.zip
+          asset_path: release/artifacts/${{ env.NAME }}_${{ env.VERSION }}.zip
           asset_name: ${{ env.NAME }}_${{ env.VERSION }}.zip
           asset_content_type: application/zip
 
@@ -163,6 +173,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/${{ env.NAME }}_${{ env.VERSION }}.tar.gz
+          asset_path: release/artifacts/${{ env.NAME }}_${{ env.VERSION }}.tar.gz
           asset_name: ${{ env.NAME }}_${{ env.VERSION }}.tar.gz
           asset_content_type: application/gzip
