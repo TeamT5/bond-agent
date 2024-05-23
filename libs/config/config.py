@@ -1,5 +1,5 @@
 import sys
-from __version__ import __version__
+from libs.config.__version__ import __version__
 from fastapi.templating import Jinja2Templates
 
 # *----- Server Setting -----*
