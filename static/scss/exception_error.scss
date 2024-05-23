@@ -33,3 +33,16 @@ h4 {
 .Bond-Button {
     @include button-style;
 }
+
+@keyframes spotlight {
+    0%, 100% {
+        -webkit-clip-path: ellipse(100px 100px at 0% 50%);
+        clip-path: ellipse(100px 100px at 0% 50%);
+        color: #fc9c65;
+    }
+    50% {
+        -webkit-clip-path: ellipse(100px 100px at 100% 50%);
+        clip-path: ellipse(100px 100px at 100% 50%);
+        color: #ff0000;
+    }
+}
