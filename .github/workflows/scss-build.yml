@@ -86,23 +86,21 @@ jobs:
 
       - name: Set permissions and package project files as zip
         run: |
-          ARTIFACTS_DIR=$(pwd)/artifacts
-          mkdir -p $ARTIFACTS_DIR
+          mkdir -p artifacts
           find . -type f -iname "*.sh" -exec chmod +x {} \;
-          zip -r $ARTIFACTS_DIR/${{ env.NAME }}_${{ env.VERSION }}.zip ./*
+          zip -r artifacts/${{ env.NAME }}_${{ env.VERSION }}.zip . -x "./node_modules/**" -x "./artifacts/**" -x "./.git/**" -x "./.github/**"
 
       - name: Set permissions and package project files as tar.gz
         run: |
-          ARTIFACTS_DIR=$(pwd)/artifacts
-          mkdir -p $ARTIFACTS_DIR
+          mkdir -p artifacts
           find . -type f -iname "*.sh" -exec chmod +x {} \;
-          tar -czvf $ARTIFACTS_DIR/${{ env.NAME }}_${{ env.VERSION }}.tar.gz ./*
+          tar --exclude='./node_modules' --exclude='./artifacts' --exclude='./.git' --exclude='./.github' -czvf artifacts/${{ env.NAME }}_${{ env.VERSION }}.tar.gz .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: release-package
-          path: ${{ github.workspace }}/artifacts
+          path: artifacts/
 
   release:
     needs: build
