@@ -105,8 +105,10 @@ jobs:
         id: get_version
         run: |
           VERSION=$(grep '__version__' libs/config/__version__.py | sed -E 's/__version__ = "(.*)"/\1/')
+          NAME=$(grep '^name' pyproject.toml | sed -E 's/name = "(.*)"/\1/')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "TAG_NAME=${{ env.NAME }}-${VERSION}" >> $GITHUB_ENV
+          echo "NAME=$NAME" >> $GITHUB_ENV
+          echo "TAG_NAME=${NAME}-${VERSION}" >> $GITHUB_ENV
 
       - name: Configure Git
         run: |
@@ -137,7 +139,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/${{ env.NAME }}_${{ env.VERSION }}.zip
+          asset_path: release/artifacts/${{ env.NAME }}_${{ env.VERSION }}.zip
           asset_name: ${{ env.NAME }}_${{ env.VERSION }}.zip
           asset_content_type: application/zip
 
@@ -147,6 +149,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/${{ env.NAME }}_${{ env.VERSION }}.tar.gz
+          asset_path: release/artifacts/${{ env.NAME }}_${{ env.VERSION }}.tar.gz
           asset_name: ${{ env.NAME }}_${{ env.VERSION }}.tar.gz
           asset_content_type: application/gzip
