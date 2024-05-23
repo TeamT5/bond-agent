@@ -80,21 +80,23 @@ jobs:
         run: |
           NAME=$(grep '^name' pyproject.toml | sed -E 's/name = "(.*)"/\1/')
           VERSION=$(grep '__version__' libs/config/__version__.py | sed -E 's/__version__ = "(.*)"/\1/')
+          TIMESTAMP=$(date +'%Y%m%d%H%M%S')
           echo "NAME=$NAME" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "TAG_NAME=${NAME}-${VERSION}" >> $GITHUB_ENV
+          echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
+          echo "TAG_NAME=${NAME}-${VERSION}-${TIMESTAMP}" >> $GITHUB_ENV
 
       - name: Set permissions and package project files as zip
         run: |
           mkdir -p artifacts
           find . -type f -iname "*.sh" -exec chmod +x {} \;
-          zip -r artifacts/${{ env.NAME }}_${{ env.VERSION }}.zip . -x "./node_modules/**" -x "./artifacts/**" -x "./.git/**" -x "./.github/**" -x "./tests/**" -x "./.gitignore"
+          zip -r artifacts/${{ env.NAME }}_${{ env.VERSION }}_${{ env.TIMESTAMP }}.zip . -x "./node_modules/**" -x "./artifacts/**" -x "./.git/**" -x "./.github/**" -x "./tests/**" -x "./.gitignore"
 
       - name: Set permissions and package project files as tar.gz
         run: |
           mkdir -p artifacts
           find . -type f -iname "*.sh" -exec chmod +x {} \;
-          tar --exclude='./node_modules' --exclude='./artifacts' --exclude='./.git' --exclude='./.github' --exclude='./tests' --exclude='./.gitignore' -czvf artifacts/${{ env.NAME }}_${{ env.VERSION }}.tar.gz .
+          tar --exclude='./node_modules' --exclude='./artifacts' --exclude='./.git' --exclude='./.github' --exclude='./tests' --exclude='./.gitignore' -czvf artifacts/${{ env.NAME }}_${{ env.VERSION }}_${{ env.TIMESTAMP }}.tar.gz .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
@@ -115,14 +117,13 @@ jobs:
           name: release-package
           path: release/
 
-      - name: Get version from __version__.py
-        id: get_version
+      - name: Get version and timestamp from environment
+        id: get_version_and_timestamp
         run: |
-          VERSION=$(grep '__version__' libs/config/__version__.py | sed -E 's/__version__ = "(.*)"/\1/')
-          NAME=$(grep '^name' pyproject.toml | sed -E 's/name = "(.*)"/\1/')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "NAME=$NAME" >> $GITHUB_ENV
-          echo "TAG_NAME=${NAME}-${VERSION}" >> $GITHUB_ENV
+          echo "VERSION=${{ env.VERSION }}" >> $GITHUB_ENV
+          echo "NAME=${{ env.NAME }}" >> $GITHUB_ENV
+          echo "TIMESTAMP=${{ env.TIMESTAMP }}" >> $GITHUB_ENV
+          echo "TAG_NAME=${{ env.NAME }}-${{ env.VERSION }}-${{ env.TIMESTAMP }}" >> $GITHUB_ENV
 
       - name: Configure Git
         run: |
@@ -163,8 +164,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/artifacts/${{ env.NAME }}_${{ env.VERSION }}.zip
-          asset_name: ${{ env.NAME }}_${{ env.VERSION }}.zip
+          asset_path: release/artifacts/${{ env.NAME }}_${{ env.VERSION }}_${{ env.TIMESTAMP }}.zip
+          asset_name: ${{ env.NAME }}_${{ env.VERSION }}_${{ env.TIMESTAMP }}.zip
           asset_content_type: application/zip
 
       - name: Upload Release Asset - TAR.GZ
@@ -173,6 +174,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/artifacts/${{ env.NAME }}_${{ env.VERSION }}.tar.gz
-          asset_name: ${{ env.NAME }}_${{ env.VERSION }}.tar.gz
+          asset_path: release/artifacts/${{ env.NAME }}_${{ env.VERSION }}_${{ env.TIMESTAMP }}.tar.gz
+          asset_name: ${{ env.NAME }}_${{ env.VERSION }}_${{ env.TIMESTAMP }}.tar.gz
           asset_content_type: application/gzip
