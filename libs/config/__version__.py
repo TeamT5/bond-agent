@@ -1,1 +1,1 @@
-__version__ = "BA240522"
+__version__ = "BA240523"

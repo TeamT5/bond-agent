@@ -1,0 +1,48 @@
+@use 'variables' as *;
+@use 'common';
+@use 'mixins' as *;
+
+h4 {
+    @include font-base;
+    color: $secondary-color;
+    font-size: 1.15rem;
+}
+
+.http_code_description_box {
+    @include flex-center;
+    flex-direction: column;
+    padding: auto;
+    margin: auto;
+    height: 170px;
+    width: 500px;
+    overflow-wrap: break-word;
+    transition: transform 1.3s ease;
+
+    &:hover {
+        transform: scale(1.1);
+    }
+}
+
+.button-center {
+    @include font-base;
+    text-align: center;
+    white-space: nowrap;
+    transition: transform 1.3s ease;
+}
+
+.Bond-Button {
+    @include button-style;
+}
+
+@keyframes spotlight {
+    0%, 100% {
+        -webkit-clip-path: ellipse(100px 100px at 0% 50%);
+        clip-path: ellipse(100px 100px at 0% 50%);
+        color: #fc9c65;
+    }
+    50% {
+        -webkit-clip-path: ellipse(100px 100px at 100% 50%);
+        clip-path: ellipse(100px 100px at 100% 50%);
+        color: #ff0000;
+    }
+}
